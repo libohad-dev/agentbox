@@ -35,12 +35,6 @@ agentbox --add-dir ~/proj1 --add-dir ~/proj2 --add-dir ~/proj3
 agentbox --add-dir ~/library-code shell
 ```
 
-**How it works:**
-- Your current directory is always mounted as `/workspace`
-- Additional directories are mounted using their folder names (e.g., `/foo`, `/bar`)
-- All directories are writable - changes sync back to the host
-- The mounting order follows the order you specify in the flag
-
 ## Installation
 
 1. Clone AgentBox to your preferred location

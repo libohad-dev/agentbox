@@ -44,8 +44,8 @@ After each successful rebuild, `docker image prune -f --filter "label=agentbox.v
 
 ### Mount Points
 ```bash
-/workspace              # Project directory (main mount, always current directory)
-/<directory_name>       # Additional directories (via --add-dir flag, using folder basenames e.g., /foo, /bar)
+$PROJECT_DIR            # Project directory (mounted at full host path)
+<additional_dirs>       # Additional directories via --add-dir (also mounted at full host paths)
 /home/claude/.ssh       # SSH keys from ~/.agentbox/ssh/
 /home/claude/.gitconfig # Git config (read-only)
 /home/claude/.npm       # NPM cache
