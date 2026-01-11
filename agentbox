@@ -422,7 +422,6 @@ Options:
     -h, --help              Show this help message
     --tool TOOL             Choose tool: claude (default) or opencode
     -p PORT                 Forward a port from host to container (can be used multiple times)
-    --cleanup               Remove AgentBox image and cached data
     --rebuild               Force rebuild of the image
     --add-dir DIR           Mount additional directory (can be used multiple times)
 
@@ -444,7 +443,6 @@ Examples:
     agentbox shell --admin              # Start admin shell with sudo access
     agentbox --add-dir ~/1 --add-dir ~/2  # Add dirs with Claude CLI
     agentbox python script.py           # Run Python script in container
-    agentbox --cleanup                  # Remove image and optionally cached data
     agentbox --rebuild                  # Force rebuild image
     agentbox ssh-init                   # Set up SSH for AgentBox
     AGENTBOX_TOOL=opencode agentbox     # Use env var to select tool
@@ -454,36 +452,6 @@ Package caches and shell history persist between sessions.
 
 All directories are mounted at their full host paths for symlink/path compatibility.
 EOF
-}
-
-# Remove AgentBox images and cached data
-cleanup_all() {
-    log_warning "Removing AgentBox images and cached data..."
-
-    # Remove AgentBox image
-    if docker image inspect "$IMAGE_NAME" &> /dev/null; then
-        log_info "Removing AgentBox image"
-        docker rmi "$IMAGE_NAME" &> /dev/null || true
-    fi
-
-    # Remove cached data (optional - ask user)
-    local cache_base="${HOME}/.cache/agentbox"
-    local project_base="${HOME}/.agentbox/projects"
-
-    if [[ -d "$cache_base" ]] || [[ -d "$project_base" ]]; then
-        log_warning "This will also remove cached packages and shell history."
-        echo -n "Remove cached data? (y/N): "
-        read -r response
-        if [[ "$response" =~ ^[Yy]$ ]]; then
-            [[ -d "$cache_base" ]] && rm -rf "$cache_base"
-            [[ -d "$project_base" ]] && rm -rf "$project_base"
-            log_success "Cached data removed"
-        else
-            log_info "Cached data preserved"
-        fi
-    fi
-
-    log_success "Cleanup complete"
 }
 
 # Set up dedicated SSH directory for AgentBox
@@ -525,7 +493,6 @@ ssh_setup() {
 main() {
     # Parse arguments
     local force_rebuild=false
-    local cleanup_all=false
     local shell_mode=false
     local admin_mode=false
     local cmd_args=()
@@ -538,10 +505,6 @@ main() {
             -h|--help)
                 show_help
                 exit 0
-                ;;
-            --cleanup)
-                cleanup_all=true
-                shift
                 ;;
             --rebuild)
                 force_rebuild=true
@@ -605,12 +568,6 @@ main() {
 
     # Check Docker
     check_docker
-
-    # Handle special commands
-    if [[ "$cleanup_all" == "true" ]]; then
-        cleanup_all
-        exit 0
-    fi
 
     # Get container name for current project
     local container_name=$(get_container_name)

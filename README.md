@@ -167,15 +167,6 @@ Both tools use bind mounts to share authentication across all AgentBox projects:
 - Config: `~/.config/opencode` mounted at `/home/agent/.config/opencode`
 - Auth: `~/.local/share/opencode` mounted at `/home/agent/.local/share/opencode`
 
-## Cleanup
-
-```bash
-# Full cleanup (removes image and optionally cached data)
-agentbox --cleanup
-```
-
-**Note**: Authentication is stored in your home directory (`~/.claude`, `~/.config/opencode`, `~/.local/share/opencode`) and is not affected by cleanup. Your project files also remain untouched.
-
 ## Advanced Usage
 
 ### Running One-Off Commands
