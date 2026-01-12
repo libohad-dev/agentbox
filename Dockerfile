@@ -1,5 +1,5 @@
 # AgentBox - Simplified multi-language development environment for Claude
-FROM debian:trixie
+FROM docker.io/library/debian:trixie
 
 # Prevent interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
