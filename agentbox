@@ -274,13 +274,13 @@ run_container() {
 
     # Mount .gitconfig to temp location for copying (if it exists)
     if [[ -f "${HOME}/.gitconfig" ]]; then
-        mount_opts+=(-v "${HOME}/.gitconfig:/tmp/host_gitconfig:ro")
+        mount_opts+=(-v "${HOME}/.gitconfig:/tmp/host_gitconfig:ro,z")
     fi
 
     # Mount dedicated AgentBox SSH directory
     local agentbox_ssh="${HOME}/.agentbox/ssh"
     if [[ -d "${agentbox_ssh}" ]]; then
-        mount_opts+=(-v "${agentbox_ssh}:/home/agent/.ssh:rw")
+        mount_opts+=(-v "${agentbox_ssh}:/home/agent/.ssh:rw,z")
         log_info "AgentBox SSH directory mounted (read-write)"
     else
         log_warning "SSH not configured. Run 'agentbox ssh-init' to enable SSH operations."
@@ -291,10 +291,10 @@ run_container() {
     mkdir -p "${cache_dir}/npm" "${cache_dir}/pip" "${cache_dir}/maven" "${cache_dir}/gradle"
 
     mount_opts+=(
-        -v "${cache_dir}/npm:/home/agent/.npm"
-        -v "${cache_dir}/pip:/home/agent/.cache/pip"
-        -v "${cache_dir}/maven:/home/agent/.m2"
-        -v "${cache_dir}/gradle:/home/agent/.gradle"
+        -v "${cache_dir}/npm:/home/agent/.npm:z"
+        -v "${cache_dir}/pip:/home/agent/.cache/pip:z"
+        -v "${cache_dir}/maven:/home/agent/.m2:z"
+        -v "${cache_dir}/gradle:/home/agent/.gradle:z"
     )
 
     # Mount per-project persistent data
@@ -304,7 +304,7 @@ run_container() {
 
     # Mount history directory (not individual files to avoid file locking issues)
     mount_opts+=(
-        -v "${history_dir}:/home/agent/.shell_history"
+        -v "${history_dir}:/home/agent/.shell_history:z"
         --env "HISTFILE=/home/agent/.shell_history/zsh_history"
     )
 
@@ -316,8 +316,8 @@ run_container() {
         mkdir -p "$opencode_auth_dir"
 
         mount_opts+=(
-            -v "${opencode_config_dir}:/home/agent/.config/opencode"
-            -v "${opencode_auth_dir}:/home/agent/.local/share/opencode"
+            -v "${opencode_config_dir}:/home/agent/.config/opencode:z"
+            -v "${opencode_auth_dir}:/home/agent/.local/share/opencode:z"
         )
 
         log_info "OpenCode configuration and auth mounted"
@@ -327,7 +327,7 @@ run_container() {
         mkdir -p "$claude_dir"
 
         mount_opts+=(
-            -v "${claude_dir}:/home/agent/.claude"
+            -v "${claude_dir}:/home/agent/.claude:z"
             --env "CLAUDE_CONFIG_DIR=/home/agent/.claude"
         )
 
@@ -335,7 +335,7 @@ run_container() {
 
         if [[ -f "${claude_json}" ]]; then
             mount_opts+=(
-                -v "${claude_json}:/home/agent/.claude.json"
+                -v "${claude_json}:/home/agent/.claude.json:z"
             )
         fi
 
@@ -349,7 +349,7 @@ run_container() {
     if [[ -f "$PROJECT_DIR/.envrc" ]]; then
         local host_direnv_allow="${HOME}/.local/share/direnv/allow"
         if [[ -d "$host_direnv_allow" ]]; then
-            mount_opts+=(-v "${host_direnv_allow}:/tmp/host_direnv_allow:ro")
+            mount_opts+=(-v "${host_direnv_allow}:/tmp/host_direnv_allow:ro,z")
             log_info "Host direnv approvals will be translated to container"
         fi
     fi
