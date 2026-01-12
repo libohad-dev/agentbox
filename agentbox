@@ -355,6 +355,15 @@ run_container() {
         fi
     fi
 
+    # Mount the podman socket into the container for testcontainers support
+    local podman_socket="/run/user/$(id -u)/podman/podman.sock"
+    if [[ -S "$podman_socket" ]]; then
+        mount_opts+=(
+            -v "${podman_socket}:/var/run/docker.sock:z"
+            --env DOCKER_HOST=unix:///var/run/docker.sock
+        )
+    fi
+
     # Prepare the command to run
     local container_cmd
     if [[ "$shell_mode" == "true" ]]; then
