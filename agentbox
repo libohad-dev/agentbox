@@ -418,7 +418,7 @@ run_container() {
 
     # Run ephemeral container with --rm
     podman run -it --rm \
-        --name "$container_name" \
+        --name "${container_name}-${RANDOM}" \
         --hostname "agentbox-$PROJECT_NAME" \
         --transient-store \
         --userns keep-id \
