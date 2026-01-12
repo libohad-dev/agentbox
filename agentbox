@@ -331,6 +331,14 @@ run_container() {
             --env "CLAUDE_CONFIG_DIR=/home/agent/.claude"
         )
 
+        local claude_json="${HOME}/.claude.json"
+
+        if [[ -f "${claude_json}" ]]; then
+            mount_opts+=(
+                -v "${claude_json}:/home/agent/.claude.json"
+            )
+        fi
+
         log_info "Claude CLI configuration mounted"
     fi
 
