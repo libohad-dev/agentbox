@@ -369,7 +369,7 @@ run_container() {
         if [[ "$tool" == "opencode" ]]; then
             tool_cmd="opencode"
         else
-            tool_cmd="claude --dangerously-skip-permissions"
+            tool_cmd="claude"
         fi
 
         if [[ ${#cmd_args[@]} -gt 0 ]]; then
