@@ -361,6 +361,7 @@ run_container() {
         mount_opts+=(
             -v "${podman_socket}:/var/run/docker.sock:z"
             --env DOCKER_HOST=unix:///var/run/docker.sock
+            --env TESTCONTAINERS_RYUK_DISABLED=true
         )
     fi
 
