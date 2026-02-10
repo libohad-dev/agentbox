@@ -79,8 +79,21 @@ if [ -t 0 ] && [ -t 1 ]; then
     echo "🐍 Python: $(python3 --version 2>&1 | cut -d' ' -f2) (uv available)"
     echo "🟢 Node.js: $(node --version 2>/dev/null || echo 'not found')"
     echo "☕ Java: $(java -version 2>&1 | head -1 | cut -d'"' -f2 || echo 'not found')"
-    command -v go >/dev/null 2>&1 && echo "🐹 Go: $(go version 2>/dev/null | cut -d' ' -f3 || echo 'error')"
-    command -v rustc >/dev/null 2>&1 && echo "🦀 Rust: $(rustc --version 2>/dev/null | cut -d' ' -f2 || echo 'error')"
+    if command -v go >/dev/null 2>&1; then
+        _addons=""
+        command -v gopls >/dev/null 2>&1 && _addons="${_addons}gopls, "
+        command -v go-staticcheck >/dev/null 2>&1 && _addons="${_addons}go-staticcheck, "
+        _addons="${_addons%, }"
+        [ -n "$_addons" ] && _addons="  # addons: ${_addons}"
+        echo "🐹 Go: $(go version 2>/dev/null | cut -d' ' -f3 || echo 'error')${_addons}"
+    fi
+    if command -v rustc >/dev/null 2>&1; then
+        _addons=""
+        command -v rust-analyzer >/dev/null 2>&1 && _addons="${_addons}rust-analyzer, "
+        _addons="${_addons%, }"
+        [ -n "$_addons" ] && _addons="  # addons: ${_addons}"
+        echo "🦀 Rust: $(rustc --version 2>/dev/null | cut -d' ' -f2 || echo 'error')${_addons}"
+    fi
     if [ "$TOOL" = "opencode" ]; then
         echo "🤖 OpenCode: $(opencode --version 2>/dev/null || echo 'not found - check installation')"
     else

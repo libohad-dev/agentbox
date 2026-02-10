@@ -219,6 +219,16 @@ validate_dir_path() {
 }
 
 # Mount host toolchains (Go, Rust) if available
+mount_host_tool() {
+    local -n mount_opts_ref=$1
+    local tool="$2"
+    local tool_path
+    tool_path=$(command -v "$tool" 2>/dev/null) || return 1
+    tool_path=$(readlink -f "$tool_path" 2>/dev/null) || return 1
+    mount_opts_ref+=(-v "${tool_path}:/home/agent/.local/bin/${tool}:ro,z")
+    return 0
+}
+
 mount_host_toolchains() {
     local -n toolchain_mount_opts_ref=$1
     local cache_dir="$2"
@@ -235,7 +245,13 @@ mount_host_toolchains() {
                 --env "GOROOT=${goroot}"
                 --env "GOPATH=/home/agent/go"
             )
-            log_info "Go toolchain shared from host (${goroot})"
+            local go_addons=()
+            for tool in gopls go-staticcheck; do
+                mount_host_tool toolchain_mount_opts_ref "$tool" && go_addons+=("$tool")
+            done
+            local addon_msg=""
+            [[ ${#go_addons[@]} -gt 0 ]] && addon_msg=" + ${go_addons[*]}"
+            log_info "Go toolchain shared from host (${goroot})${addon_msg}"
         fi
     fi
 
@@ -251,7 +267,13 @@ mount_host_toolchains() {
             --env "RUSTUP_HOME=/home/agent/.rustup"
             --env "CARGO_HOME=/home/agent/.cargo-cache"
         )
-        log_info "Rust toolchain shared from host (${rustup_home})"
+        local rust_addons=()
+        for tool in rust-analyzer; do
+            mount_host_tool toolchain_mount_opts_ref "$tool" && rust_addons+=("$tool")
+        done
+        local addon_msg=""
+        [[ ${#rust_addons[@]} -gt 0 ]] && addon_msg=" + ${rust_addons[*]}"
+        log_info "Rust toolchain shared from host (${rustup_home})${addon_msg}"
     fi
 }
 
