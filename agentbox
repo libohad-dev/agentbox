@@ -218,6 +218,43 @@ validate_dir_path() {
     return 0
 }
 
+# Mount host toolchains (Go, Rust) if available
+mount_host_toolchains() {
+    local -n toolchain_mount_opts_ref=$1
+    local cache_dir="$2"
+
+    # Go: mount GOROOT read-only, use per-project GOPATH for caches
+    if command -v go &>/dev/null; then
+        local goroot
+        goroot=$(go env GOROOT 2>/dev/null) || true
+        if [[ -n "$goroot" && -d "$goroot" ]]; then
+            mkdir -p "${cache_dir}/go"
+            toolchain_mount_opts_ref+=(
+                -v "${goroot}:${goroot}:ro,z"
+                -v "${cache_dir}/go:/home/agent/go:z"
+                --env "GOROOT=${goroot}"
+                --env "GOPATH=/home/agent/go"
+            )
+            log_info "Go toolchain shared from host (${goroot})"
+        fi
+    fi
+
+    # Rust: mount rustup + cargo binaries read-only, use per-project cargo cache
+    local rustup_home="${RUSTUP_HOME:-${HOME}/.rustup}"
+    local cargo_home="${CARGO_HOME:-${HOME}/.cargo}"
+    if [[ -d "${rustup_home}" && -d "${cargo_home}/bin" ]]; then
+        mkdir -p "${cache_dir}/cargo"
+        toolchain_mount_opts_ref+=(
+            -v "${rustup_home}:/home/agent/.rustup:ro,z"
+            -v "${cargo_home}/bin:/home/agent/.cargo/bin:ro,z"
+            -v "${cache_dir}/cargo:/home/agent/.cargo-cache:z"
+            --env "RUSTUP_HOME=/home/agent/.rustup"
+            --env "CARGO_HOME=/home/agent/.cargo-cache"
+        )
+        log_info "Rust toolchain shared from host (${rustup_home})"
+    fi
+}
+
 # Mount additional dirs to Podman mount options
 mount_additional_dirs() {
     local -n mount_opts_ref=$1
@@ -297,6 +334,8 @@ run_container() {
         -v "${cache_dir}/gradle:/home/agent/.gradle:z"
         -v "${cache_dir}/pypoetry:/home/agent/.cache/pypoetry:z"
     )
+
+    mount_host_toolchains mount_opts "$cache_dir"
 
     # Mount per-project persistent data
     local project_data_dir="${HOME}/.agentbox/projects/${container_name}"
