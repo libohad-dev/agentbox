@@ -33,6 +33,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         # Python build dependencies
         python3-dev python3-pip python3-venv \
         libssl-dev libffi-dev \
+        # Native library for F*/TLAPS OCaml binaries
+        libgmp10 \
         # Java dependencies
         default-jdk maven gradle \
         # Search tools

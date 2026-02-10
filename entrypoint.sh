@@ -15,6 +15,15 @@ fi
 if [ -d "$HOME/.cargo/bin" ]; then
     export PATH="$HOME/.cargo/bin:$PATH"
 fi
+if [ -n "$FSTAR_HOME" ] && [ -d "$FSTAR_HOME/bin" ]; then
+    export PATH="$FSTAR_HOME/bin:$PATH"
+fi
+if [ -n "$TLAPLUS_HOME" ] && [ -d "$TLAPLUS_HOME/bin" ]; then
+    export PATH="$TLAPLUS_HOME/bin:$PATH"
+fi
+if [ -n "$TLAPS_HOME" ] && [ -d "$TLAPS_HOME/bin" ]; then
+    export PATH="$TLAPS_HOME/bin:$PATH"
+fi
 
 if [ -s "$HOME/.nvm/nvm.sh" ]; then
     export NVM_DIR="$HOME/.nvm"
@@ -93,6 +102,20 @@ if [ -t 0 ] && [ -t 1 ]; then
         _addons="${_addons%, }"
         [ -n "$_addons" ] && _addons="  # addons: ${_addons}"
         echo "🦀 Rust: $(rustc --version 2>/dev/null | cut -d' ' -f2 || echo 'error')${_addons}"
+    fi
+    if command -v fstar.exe >/dev/null 2>&1; then
+        _addons=""
+        [ -n "$FSTAR_HOME" ] && compgen -G "$FSTAR_HOME/lib/fstar/z3-*/bin/z3" >/dev/null 2>&1 && _addons="${_addons}z3, "
+        _addons="${_addons%, }"
+        [ -n "$_addons" ] && _addons="  # addons: ${_addons}"
+        echo "⭐ F*: $(fstar.exe --version 2>/dev/null | head -1 | sed 's/^F\* //')${_addons}"
+    fi
+    if command -v tlc >/dev/null 2>&1; then
+        _addons=""
+        command -v tlapm >/dev/null 2>&1 && _addons="${_addons}tlapm, "
+        _addons="${_addons%, }"
+        [ -n "$_addons" ] && _addons="  # addons: ${_addons}"
+        echo "📐 TLA+: available${_addons}"
     fi
     if [ "$TOOL" = "opencode" ]; then
         echo "🤖 OpenCode: $(opencode --version 2>/dev/null || echo 'not found - check installation')"
