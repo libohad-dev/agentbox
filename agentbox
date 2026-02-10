@@ -234,6 +234,11 @@ mount_host_toolchains() {
     local cache_dir="$2"
 
     # Go: mount GOROOT read-only, use per-project GOPATH for caches
+    # Debian/Ubuntu split Go across /usr/lib/go-X.Y (binaries, GOROOT) and
+    # /usr/share/go-X.Y (sources, stdlib). GOROOT contains relative symlinks
+    # (e.g. src -> ../../share/go-X.Y/src) that dangle unless both directories
+    # are mounted. Detect and mount symlink targets so `go build` can find
+    # the standard library.
     if command -v go &>/dev/null; then
         local goroot
         goroot=$(go env GOROOT 2>/dev/null) || true
@@ -245,6 +250,24 @@ mount_host_toolchains() {
                 --env "GOROOT=${goroot}"
                 --env "GOPATH=/home/agent/go"
             )
+            # Mount targets of relative symlinks inside GOROOT (e.g. /usr/share/go-X.Y)
+            local -A go_extra_mounts=()
+            for link in "${goroot}"/*; do
+                if [[ -L "$link" ]]; then
+                    local target
+                    target=$(readlink -f "$link" 2>/dev/null) || continue
+                    # Only mount if target is outside GOROOT (not already covered)
+                    if [[ -n "$target" && -e "$target" && "$target" != "${goroot}"* ]]; then
+                        # Mount the parent directory to cover sibling symlinks too
+                        local mount_dir
+                        mount_dir=$(dirname "$target")
+                        if [[ -z "${go_extra_mounts[$mount_dir]+_}" ]]; then
+                            go_extra_mounts[$mount_dir]=1
+                            toolchain_mount_opts_ref+=(-v "${mount_dir}:${mount_dir}:ro,z")
+                        fi
+                    fi
+                fi
+            done
             local go_addons=()
             for tool in gopls go-staticcheck; do
                 mount_host_tool toolchain_mount_opts_ref "$tool" && go_addons+=("$tool")
