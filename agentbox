@@ -275,6 +275,60 @@ mount_host_toolchains() {
         [[ ${#rust_addons[@]} -gt 0 ]] && addon_msg=" + ${rust_addons[*]}"
         log_info "Rust toolchain shared from host (${rustup_home})${addon_msg}"
     fi
+
+    # F*: mount FSTAR_HOME read-only
+    local fstar_home="${FSTAR_HOME:-}"
+    if [[ -z "$fstar_home" ]]; then
+        local fstar_bin
+        fstar_bin=$(command -v fstar.exe 2>/dev/null) && \
+            fstar_bin=$(readlink -f "$fstar_bin" 2>/dev/null) && \
+            fstar_home=$(dirname "$(dirname "$fstar_bin")")
+    fi
+    if [[ -n "$fstar_home" && -d "$fstar_home/bin" && -d "$fstar_home/lib/fstar" ]]; then
+        toolchain_mount_opts_ref+=(
+            -v "${fstar_home}:${fstar_home}:ro,z"
+            --env "FSTAR_HOME=${fstar_home}"
+        )
+        local fstar_addons=()
+        compgen -G "$fstar_home/lib/fstar/z3-*/bin/z3" &>/dev/null && fstar_addons+=("z3")
+        local addon_msg=""
+        [[ ${#fstar_addons[@]} -gt 0 ]] && addon_msg=" + ${fstar_addons[*]}"
+        log_info "F* toolchain shared from host (${fstar_home})${addon_msg}"
+    fi
+
+    # TLA+: mount tla-bin installation read-only
+    local tlaplus_home="${TLAPLUS_HOME:-}"
+    if [[ -z "$tlaplus_home" ]]; then
+        local tlc_bin
+        tlc_bin=$(command -v tlc 2>/dev/null) && \
+            tlc_bin=$(readlink -f "$tlc_bin" 2>/dev/null) && \
+            tlaplus_home=$(dirname "$(dirname "$tlc_bin")")
+    fi
+    if [[ -n "$tlaplus_home" && -d "$tlaplus_home/bin" && -d "$tlaplus_home/lib" ]]; then
+        toolchain_mount_opts_ref+=(
+            -v "${tlaplus_home}:${tlaplus_home}:ro,z"
+            --env "TLAPLUS_HOME=${tlaplus_home}"
+        )
+        # TLAPS: mount separately if available
+        local tlaps_home="${TLAPS_HOME:-}"
+        if [[ -z "$tlaps_home" ]]; then
+            local tlapm_bin
+            tlapm_bin=$(command -v tlapm 2>/dev/null) && \
+                tlapm_bin=$(readlink -f "$tlapm_bin" 2>/dev/null) && \
+                tlaps_home=$(dirname "$(dirname "$tlapm_bin")")
+        fi
+        local tla_addons=()
+        if [[ -n "$tlaps_home" && -d "$tlaps_home/bin" ]]; then
+            toolchain_mount_opts_ref+=(
+                -v "${tlaps_home}:${tlaps_home}:ro,z"
+                --env "TLAPS_HOME=${tlaps_home}"
+            )
+            tla_addons+=("tlapm")
+        fi
+        local addon_msg=""
+        [[ ${#tla_addons[@]} -gt 0 ]] && addon_msg=" + ${tla_addons[*]}"
+        log_info "TLA+ toolchain shared from host (${tlaplus_home})${addon_msg}"
+    fi
 }
 
 # Mount additional dirs to Podman mount options
