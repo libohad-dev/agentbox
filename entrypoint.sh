@@ -4,6 +4,18 @@ set -e
 
 export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
 
+# Host-shared toolchains
+if [ -n "$GOROOT" ] && [ -d "$GOROOT/bin" ]; then
+    export PATH="$GOROOT/bin:$PATH"
+    [ -n "$GOPATH" ] && export PATH="$GOPATH/bin:$PATH"
+fi
+if [ -n "$RUST_TOOLCHAIN_BIN" ] && [ -d "$RUST_TOOLCHAIN_BIN" ]; then
+    export PATH="$RUST_TOOLCHAIN_BIN:$PATH"
+fi
+if [ -d "$HOME/.cargo/bin" ]; then
+    export PATH="$HOME/.cargo/bin:$PATH"
+fi
+
 if [ -s "$HOME/.nvm/nvm.sh" ]; then
     export NVM_DIR="$HOME/.nvm"
     source "$NVM_DIR/nvm.sh"
@@ -67,6 +79,8 @@ if [ -t 0 ] && [ -t 1 ]; then
     echo "🐍 Python: $(python3 --version 2>&1 | cut -d' ' -f2) (uv available)"
     echo "🟢 Node.js: $(node --version 2>/dev/null || echo 'not found')"
     echo "☕ Java: $(java -version 2>&1 | head -1 | cut -d'"' -f2 || echo 'not found')"
+    command -v go >/dev/null 2>&1 && echo "🐹 Go: $(go version 2>/dev/null | cut -d' ' -f3 || echo 'error')"
+    command -v rustc >/dev/null 2>&1 && echo "🦀 Rust: $(rustc --version 2>/dev/null | cut -d' ' -f2 || echo 'error')"
     if [ "$TOOL" = "opencode" ]; then
         echo "🤖 OpenCode: $(opencode --version 2>/dev/null || echo 'not found - check installation')"
     else
