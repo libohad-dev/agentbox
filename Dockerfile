@@ -21,7 +21,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         # Build tools
         build-essential gcc g++ make cmake pkg-config \
         # Shell and utilities
-        zsh bash-completion locales \
+        zsh bash-completion locales file \
         # Network tools
         openssh-client netcat-openbsd socat dnsutils iputils-ping \
         # Archive tools
