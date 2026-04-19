@@ -430,6 +430,9 @@ run_container() {
     if [[ -f "${HOME}/.gitconfig" ]]; then
         mount_opts+=(-v "${HOME}/.gitconfig:/tmp/host_gitconfig:ro,z")
     fi
+    if [[ -f "${HOME}/.hostgitconfig" ]]; then
+        mount_opts+=(-v "${HOME}/.hostgitconfig:/home/agent/.hostgitconfig:ro,z")
+    fi
 
     # Mount dedicated AgentBox SSH directory
     local agentbox_ssh="${HOME}/.agentbox/ssh"
