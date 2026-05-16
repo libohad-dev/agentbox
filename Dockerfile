@@ -140,6 +140,8 @@ RUN /home/${USERNAME}/.local/bin/uv tool install black && \
     /home/${USERNAME}/.local/bin/uv tool install pytest && \
     /home/${USERNAME}/.local/bin/uv tool install ipython && \
     /home/${USERNAME}/.local/bin/uv tool install poetry && \
+    /home/${USERNAME}/.local/bin/uv tool install reuse && \
+    /home/${USERNAME}/.local/bin/uv tool install pre-commit && \
     /home/${USERNAME}/.local/bin/uv tool install pipenv
 
 # Install oh-my-zsh for better shell experience and setup NVM for zsh
